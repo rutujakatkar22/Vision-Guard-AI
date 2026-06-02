@@ -5,6 +5,17 @@ import datetime
 import threading
 import platform
 import mysql.connector
+import os
+import gdown
+
+if not os.path.exists("fire_model.pt"):
+    gdown.download(
+        "https://drive.google.com/file/d/18oedbFAgoFkSWYMVD93ypgMVsNS2aKuX/view?usp=drive_link",
+        "fire_model.pt",
+        quiet=False
+    )
+
+fire_model = YOLO("fire_model.pt")
 
 app = Flask(__name__)
 app.secret_key = "secret123"
