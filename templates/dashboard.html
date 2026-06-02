@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Surveillance Dashboard</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: #0f172a;
+    color: #fff;
+}
+
+/* NAVBAR */
+nav {
+    background: #1e293b;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav h2 {
+    color: #38bdf8;
+}
+
+nav button {
+    background: #ef4444;
+    border: none;
+    padding: 8px 15px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* LAYOUT */
+.container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* CAMERA */
+.camera-box {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.camera-box img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* CONTROLS */
+.controls {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.toggle {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.toggle input {
+    transform: scale(1.5);
+}
+
+/* TIME INPUT */
+.time-box {
+    margin-bottom: 15px;
+}
+
+.time-box input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+}
+
+/* ALERT BOX */
+.alerts {
+    margin-top: 20px;
+    background: #7f1d1d;
+    padding: 15px;
+    border-radius: 10px;
+    height: 150px;
+    overflow-y: auto;
+}
+
+/* LOGS */
+.logs {
+    grid-column: span 2;
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.logs table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.logs th, .logs td {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+}
+
+/* BUTTON */
+.start-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    background: #22c55e;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<nav>
+    <h2>🔥 AI Surveillance System</h2>
+    <button onclick="logout()">Logout</button>
+</nav>
+
+<div class="container">
+
+<!-- CAMERA -->
+
+<div class="camera-box">
+    <h3>Live Camera</h3>
+    <img src="/video_feed">
+</div>
+
+<!-- CONTROLS -->
+
+<div class="controls">
+    <h3>Controls</h3>
+
+```
+<div class="toggle">
+    <label>🔥 Fire Detection</label>
+    <input type="checkbox" id="fire" checked>
+</div>
+
+<div class="toggle">
+    <label>🔫 Weapon Detection</label>
+    <input type="checkbox" id="weapon" checked>
+</div>
+
+<div class="toggle">
+    <label>🚷 Restricted Area</label>
+    <input type="checkbox" id="restricted">
+</div>
+
+<div class="toggle">
+    <label>⏰ Late Coming</label>
+    <input type="checkbox" id="late">
+</div>
+
+<!-- ⏰ TIME INPUT -->
+<div class="time-box">
+    <label>Set Late Time:</label>
+    <input type="time" id="lateTime" value="09:00">
+</div>
+
+<button class="start-btn" onclick="applySettings()">Apply Settings</button>
+
+<div class="alerts" id="alerts">
+    <strong>🚨 Alerts:</strong>
+</div>
+```
+
+</div>
+
+<!-- LOGS -->
+
+<div class="logs">
+    <h3>📊 Detection Logs</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="logTable"></tbody>
+    </table>
+</div>
+
+</div>
+
+<script>
+
+// ================= SETTINGS =================
+function applySettings() {
+    let fire = document.getElementById("fire").checked;
+    let weapon = document.getElementById("weapon").checked;
+    let restricted = document.getElementById("restricted").checked;
+    let late = document.getElementById("late").checked;
+    let lateTime = document.getElementById("lateTime").value;
+
+    fetch('/update_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fire, weapon, restricted, late, lateTime })
+    });
+
+    alert("Settings Updated!");
+}
+
+// ================= LOGS =================
+function loadLogs() {
+    fetch('/get_logs')
+    .then(res => res.json())
+    .then(data => {
+        let table = document.getElementById("logTable");
+        table.innerHTML = "";
+
+        data.forEach(row => {
+            let tr = `<tr>
+                        <td>${row[0]}</td>
+                        <td>${row[1]}</td>
+                      </tr>`;
+            table.innerHTML += tr;
+        });
+    });
+}
+
+// ================= ALERTS =================
+function checkAlert() {
+    fetch('/get_alert')
+    .then(res => res.json())
+    .then(data => {
+        if (data.type) {
+            let alertBox = document.getElementById("alerts");
+
+            let p = document.createElement("p");
+            p.innerHTML = `<b>${data.type}</b> - ${data.time}`;
+            alertBox.prepend(p);
+
+            // limit alerts
+            if (alertBox.children.length > 10) {
+                alertBox.removeChild(alertBox.lastChild);
+            }
+        }
+    });
+}
+
+// ================= AUTO REFRESH =================
+setInterval(() => {
+    loadLogs();
+    checkAlert();
+}, 3000);
+
+// ================= LOGOUT =================
+function logout() {
+    window.location.href = "/logout";
+}
+
+</script>
+
+</body>
+</html>
