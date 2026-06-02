@@ -10,7 +10,7 @@ import gdown
 
 if not os.path.exists("fire_model.pt"):
     gdown.download(
-        https://drive.google.com/file/d/18oedbFAgoFkSWYMVD93ypgMVsNS2aKuX/view?usp=drive_link,
+        "https://drive.google.com/file/d/18oedbFAgoFkSWYMVD93ypgMVsNS2aKuX/view?usp=drive_link",
         "fire_model.pt",
         quiet=False
     )
